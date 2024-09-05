@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Button, Input, Form, Modal, Table, notification } from 'antd';
-import { PlusOutlined ,DeleteOutlined,EditOutlined  } from '@ant-design/icons';
+import { PlusOutlined, DeleteOutlined, EditOutlined, FilePdfOutlined } from '@ant-design/icons';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import '../index.css';
 
 const InventoryManagement = ({ searchText }) => {
@@ -41,6 +43,23 @@ const InventoryManagement = ({ searchText }) => {
     setInventory((prev) => prev.filter((item) => item.key !== key));
   };
 
+  const handleGenerateInvoice = () => {
+    const doc = new jsPDF();
+
+    doc.text('Invoice', 14, 20);
+    doc.autoTable({
+      head: [['Product Name', 'Price', 'Quantity', 'Total']],
+      body: inventory.map(item => [
+        item.name,
+        item.price,
+        item.quantity,
+        item.price * item.quantity
+      ]),
+    });
+    
+    doc.save('invoice.pdf');
+  };
+
   const filteredInventory = inventory.filter((item) =>
     item.name.toLowerCase().includes(searchText.toLowerCase())
   );
@@ -71,9 +90,12 @@ const InventoryManagement = ({ searchText }) => {
       key: 'actions',
       render: (_, record) => (
         <>
-        
-          <Button onClick={() => handleEdit(record)} type="link"> <Button type="text" icon={<EditOutlined />} /></Button>
-          <Button onClick={() => handleDelete(record.key)} type="link" danger><Button type="text" icon={<DeleteOutlined /> } /></Button>
+          <Button onClick={() => handleEdit(record)} type="link">
+            <EditOutlined />
+          </Button>
+          <Button onClick={() => handleDelete(record.key)} type="link" danger>
+            <DeleteOutlined />
+          </Button>
         </>
       ),
     },
@@ -83,6 +105,14 @@ const InventoryManagement = ({ searchText }) => {
     <div>
       <Button type="primary" onClick={handleAdd} icon={<PlusOutlined />}>
         Add Product
+      </Button>
+      <Button
+        type="primary"
+        onClick={handleGenerateInvoice}
+        icon={<FilePdfOutlined />}
+        style={{ marginLeft: 10 }}
+      >
+        Generate Invoice
       </Button>
       <Table columns={columns} dataSource={filteredInventory} style={{ marginTop: 20 }} />
       <Modal
@@ -120,4 +150,3 @@ const InventoryManagement = ({ searchText }) => {
 };
 
 export default InventoryManagement;
- 
